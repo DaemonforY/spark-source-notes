@@ -1,0 +1,25 @@
+### 例1 窄依赖 map+filter+count  => 结果: 7
+  Job0: Stage0(4 tasks, count, parents=)
+    -> 实际执行 Stage0: 4 tasks
+### 例2 reduceByKey(3) + collect  => 结果: (a,3),(b,2),(c,1),(d,1),(e,1)
+  Job1: Stage1(4 tasks, map, parents=) | Stage2(3 tasks, collect, parents=1)
+    -> 实际执行 Stage1: 4 tasks
+    -> 实际执行 Stage2: 3 tasks
+### 例3 同一个 counts 再 count  => 结果: 5
+  Job2: Stage3(4 tasks, map, parents=) | Stage4(3 tasks, count, parents=3)
+    -> 实际执行 Stage4: 3 tasks
+### 例4 两次 shuffle: reduceByKey 后 groupBy  => 结果: 3
+  Job3: Stage5(4 tasks, map, parents=) | Stage6(3 tasks, map, parents=5) | Stage7(2 tasks, collect, parents=6)
+    -> 实际执行 Stage6: 3 tasks
+    -> 实际执行 Stage7: 2 tasks
+### 例5 take(1)  => 结果: a
+  Job4: Stage8(1 tasks, take, parents=)
+    -> 实际执行 Stage8: 1 tasks
+### 例6 sortByKey(transformation)  => 结果: 已定义
+  Job5: Stage9(4 tasks, sortByKey, parents=)
+    -> 实际执行 Stage9: 4 tasks
+### 例7 join 两个 RDD  => 结果: 16
+  Job6: Stage10(4 tasks, map, parents=) | Stage11(4 tasks, map, parents=) | Stage12(2 tasks, count, parents=10,11)
+    -> 实际执行 Stage10: 4 tasks
+    -> 实际执行 Stage11: 4 tasks
+    -> 实际执行 Stage12: 2 tasks

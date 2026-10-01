@@ -1,0 +1,37 @@
+### 1 map+filter
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: None
+    规划的Stage: S0(4t) | 实际执行: 1 个
+### 2 union
+    最后一个RDD: UnionRDD, 依赖: RangeDependency,RangeDependency, partitioner: None
+    规划的Stage: S1(8t) | 实际执行: 1 个
+### 3 coalesce(4->2)
+    最后一个RDD: CoalescedRDD, 依赖: CoalescedRDD$$anon$1, partitioner: None
+    规划的Stage: S2(2t) | 实际执行: 1 个
+    coalesce 子分区0 依赖的父分区: ArraySeq(0, 1)
+### 4 repartition(2)
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: None
+    规划的Stage: S3(4t) S4(2t) | 实际执行: 2 个
+### 5 reduceByKey(3)
+    最后一个RDD: ShuffledRDD, 依赖: ShuffleDependency, partitioner: HashPartitioner
+    规划的Stage: S5(4t) S6(3t) | 实际执行: 2 个
+### 6a partitionBy(p3) 再 reduceByKey(p3)
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: HashPartitioner
+    规划的Stage: S7(4t) S8(3t) | 实际执行: 2 个
+### 6b partitionBy(p3) -> map -> reduceByKey(p3)
+    最后一个RDD: ShuffledRDD, 依赖: ShuffleDependency, partitioner: HashPartitioner
+    规划的Stage: S9(4t) S10(3t) S11(3t) | 实际执行: 3 个
+### 6c partitionBy(p3) -> mapValues -> reduceByKey(p3)
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: HashPartitioner
+    规划的Stage: S12(4t) S13(3t) | 实际执行: 2 个
+### 7a 普通 join
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: HashPartitioner
+    规划的Stage: S14(4t) S15(4t) S16(3t) | 实际执行: 3 个
+### 7b 预分区后 join
+    最后一个RDD: MapPartitionsRDD, 依赖: OneToOneDependency, partitioner: HashPartitioner
+    规划的Stage: S17(4t) S18(3t) | 实际执行: 2 个
+### toDebugString（6b）
+(3) ShuffledRDD[47] at reduceByKey at dependency.scala:1 []
+ +-(3) MapPartitionsRDD[46] at map at dependency.scala:1 []
+    |  ShuffledRDD[45] at partitionBy at dependency.scala:1 []
+    +-(4) MapPartitionsRDD[44] at map at dependency.scala:1 []
+       |  ParallelCollectionRDD[43] at parallelize at dependency.scala:1 []
