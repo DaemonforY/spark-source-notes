@@ -1,0 +1,40 @@
+### master = local[2]
+### A. Task 重试：每个 Task 的前 2 次尝试都抛异常（共 2 个 Task）
+  结果：Job 失败
+  Task 尝试：失败 2 次，成功 0 次
+  累加器（每处理一个元素 +1）= 0：只有成功的那次尝试被计入，失败尝试的累加被丢弃
+### C. Checkpoint：切断血缘，以及为什么要先 cache
+  [直接 checkpoint]
+    血缘长度：52 层 → checkpoint 后 2 层，父依赖变成 ReliableCheckpointRDD
+    一次 count() 触发了 2 个 Job；源头数据被计算了 200 次（共 100 条）
+  [先 cache 再 checkpoint]
+    血缘长度：52 层 → checkpoint 后 3 层，父依赖变成 ReliableCheckpointRDD
+    一次 count() 触发了 2 个 Job；源头数据被计算了 100 次（共 100 条）
+
+### master = local[2,3]
+### A. Task 重试：每个 Task 的前 2 次尝试都抛异常（共 2 个 Task）
+  结果：成功，count = 4
+  Task 尝试：失败 4 次，成功 2 次
+  累加器（每处理一个元素 +1）= 4：只有成功的那次尝试被计入，失败尝试的累加被丢弃
+### C. Checkpoint：切断血缘，以及为什么要先 cache
+  [直接 checkpoint]
+    血缘长度：52 层 → checkpoint 后 2 层，父依赖变成 ReliableCheckpointRDD
+    一次 count() 触发了 2 个 Job；源头数据被计算了 200 次（共 100 条）
+  [先 cache 再 checkpoint]
+    血缘长度：52 层 → checkpoint 后 3 层，父依赖变成 ReliableCheckpointRDD
+    一次 count() 触发了 2 个 Job；源头数据被计算了 100 次（共 100 条）
+
+### master = local-cluster[2,1,1024]
+### B. Executor 丢失后的局部重算
+  [1] 第一次 count：
+    Stage 0（attempt 0）: map，执行了 4 个 Task
+    Stage 1（attempt 0）: count，执行了 2 个 Task
+  [2] 杀掉 Executor 0（当前 Executor：0, 1），它上面的 Shuffle 输出随之丢失
+  [3] 第二次 count：
+    Stage 3（attempt 0）: count，执行了 2 个 Task
+    Stage 2（attempt 1）: map，执行了 1 个 Task
+    Stage 3（attempt 1）: count，执行了 2 个 Task
+  解读：被杀的 Executor 当时是空闲的，DAGScheduler 没有立即收到通知；
+        第二次 count 时 reduce Stage 先跑，读 Shuffle 报 FetchFailed，
+        才去重算 map Stage——只重算丢失的分区，然后 reduce Stage 重试（attempt 1）
+
