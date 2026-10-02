@@ -14,6 +14,7 @@
 | 02 | 宽窄依赖：Stage 到底在哪里切开？ | [`experiments/03-dependency`](experiments/03-dependency/) |
 | 03 | 面试拆解 01｜Job、Stage、Task 到底是什么关系？ | [`experiments/02-job-stage-task`](experiments/02-job-stage-task/) |
 | — | L1 练习：27 个断点跟踪一个 Job 的一生 | [`labs/`](labs/)、[`experiments/01-thread-stacks`](experiments/01-thread-stacks/) |
+| — | 第 3 讲：Shuffle 原理（三种 Writer 的选择条件） | [`experiments/04-shuffle-writer`](experiments/04-shuffle-writer/) |
 
 <!-- 文章发布后，把标题替换成各平台的文章链接 -->
 
@@ -67,7 +68,8 @@ spark-source-notes/
 ├── experiments/           可复现的实验（spark-shell 脚本 + 预期输出）
 │   ├── 01-thread-stacks/      Job 运行中的真实线程栈
 │   ├── 02-job-stage-task/     Job / Stage / Task 的关系
-│   └── 03-dependency/         宽窄依赖与 Stage 切分
+│   ├── 03-dependency/         宽窄依赖与 Stage 切分
+│   └── 04-shuffle-writer/     三种 Shuffle Writer 的选择条件
 ├── labs/                  动手练习（IDEA 断点调试指南）
 ├── roadmap/               从入门到 Committer 的学习路线
 ├── images/                文章配图

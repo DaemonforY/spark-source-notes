@@ -1,0 +1,21 @@
+### spark.serializer = JavaSerializer（默认）
+1  RDD reduceByKey(_+_, 3)              -> BaseShuffleHandle  (mapSideCombine=true, 分区数=3, 序列化器=KryoSerializer)
+2  RDD groupByKey(3)                    -> BypassMergeSortShuffleHandle  (mapSideCombine=false, 分区数=3, 序列化器=KryoSerializer)
+3  RDD groupByKey(300)，K/V 都是 Int     -> SerializedShuffleHandle  (mapSideCombine=false, 分区数=300, 序列化器=KryoSerializer)
+4  RDD reduceByKey(_+_, 300)            -> BaseShuffleHandle  (mapSideCombine=true, 分区数=300, 序列化器=KryoSerializer)
+6  RDD groupByKey(300)，value 是自定义类 -> BaseShuffleHandle  (mapSideCombine=false, 分区数=300, 序列化器=JavaSerializer)
+7  SQL repartition(300)                 -> SerializedShuffleHandle  (分区数=300, 序列化器=UnsafeRowSerializer)
+8  SQL repartition(200)                 -> BypassMergeSortShuffleHandle  (分区数=200, 序列化器=UnsafeRowSerializer)
+9  SQL repartition(201)                 -> SerializedShuffleHandle  (分区数=201, 序列化器=UnsafeRowSerializer)
+10 SQL groupBy().count()（默认分区数）   -> BypassMergeSortShuffleHandle  (分区数=200, 序列化器=UnsafeRowSerializer)
+
+### spark.serializer = org.apache.spark.serializer.KryoSerializer
+1  RDD reduceByKey(_+_, 3)              -> BaseShuffleHandle  (mapSideCombine=true, 分区数=3, 序列化器=KryoSerializer)
+2  RDD groupByKey(3)                    -> BypassMergeSortShuffleHandle  (mapSideCombine=false, 分区数=3, 序列化器=KryoSerializer)
+3  RDD groupByKey(300)，K/V 都是 Int     -> SerializedShuffleHandle  (mapSideCombine=false, 分区数=300, 序列化器=KryoSerializer)
+4  RDD reduceByKey(_+_, 300)            -> BaseShuffleHandle  (mapSideCombine=true, 分区数=300, 序列化器=KryoSerializer)
+6  RDD groupByKey(300)，value 是自定义类 -> SerializedShuffleHandle  (mapSideCombine=false, 分区数=300, 序列化器=KryoSerializer)
+7  SQL repartition(300)                 -> SerializedShuffleHandle  (分区数=300, 序列化器=UnsafeRowSerializer)
+8  SQL repartition(200)                 -> BypassMergeSortShuffleHandle  (分区数=200, 序列化器=UnsafeRowSerializer)
+9  SQL repartition(201)                 -> SerializedShuffleHandle  (分区数=201, 序列化器=UnsafeRowSerializer)
+10 SQL groupBy().count()（默认分区数）   -> BypassMergeSortShuffleHandle  (分区数=200, 序列化器=UnsafeRowSerializer)
