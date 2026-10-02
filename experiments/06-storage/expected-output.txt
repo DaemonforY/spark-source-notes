@@ -1,0 +1,17 @@
+### A. 同一份数据（100 万个 User 对象）在不同存储级别下的大小
+  Memory Deserialized 1x Replicated      内存    87.7 MB  磁盘     0.0 MB  （4 个分区）
+  Memory Serialized 1x Replicated        内存    39.0 MB  磁盘     0.0 MB  （4 个分区）
+  Disk Serialized 1x Replicated          内存     0.0 MB  磁盘    39.0 MB  （4 个分区）
+### B. cache() 的默认存储级别
+  RDD.cache()     -> Memory Deserialized 1x Replicated
+  Dataset.cache() -> Disk Memory Deserialized 1x Replicated
+  设置 spark.sql.defaultCacheStorageLevel=MEMORY_ONLY 后 Dataset.cache() -> Memory Deserialized 1x Replicated
+### C. 缓存命中
+  第 1 次 count：map 函数执行了 1000 次（计算并写入缓存）
+  第 2 次 count：map 函数执行了 0 次（直接读缓存块 rdd_8_0 ~ rdd_8_3）
+### D. 广播变量分块
+  广播 10MB 随机字节，blockSize=4m：被切成 3 块（broadcast_5_piece0 ...）
+  Executor 端读到的长度：10485760, 10485760
+### E. 块在磁盘上的位置
+  rdd_11_0 存放在：.../blockmgr-a3f0b505-dd2f-460f-8289-a5785450d62a/02/rdd_11_0
+  即 <spark.local.dir>/blockmgr-<UUID>/<两位十六进制子目录>/<块名>，文件存在：true
