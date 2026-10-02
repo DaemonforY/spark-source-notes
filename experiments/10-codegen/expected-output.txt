@@ -1,0 +1,73 @@
+### A. range → filter → project 生成的代码
+  物理计划：
+    *(1) Project [(id#0L * 2) AS x#4L]
+    +- *(1) Filter ((id#0L % 3) = 0)
+       +- *(1) Range (0, 1000, step=1, splits=1)
+  代码生成阶段数：1
+  生成的 Java 代码共 142 行（完整代码已写入 experiments/10-codegen/generated-code.java）
+  processNext() 中的核心循环（节选）：
+    /* 071 */   protected void processNext() throws java.io.IOException {
+    /* 072 */     // initialize Range
+    /* 073 */     if (!range_initRange_0) {
+    /* 074 */       range_initRange_0 = true;
+    /* 075 */       range_initRange_1(partitionIndex);
+    /* 076 */     }
+    /* 077 */
+    /* 078 */     while (true) {
+    /* 079 */       if (range_nextIndex_0 == range_batchEnd_0) {
+    /* 080 */         long range_nextBatchTodo_0;
+    /* 081 */         if (range_numElementsTodo_0 > 1000L) {
+    /* 082 */           range_nextBatchTodo_0 = 1000L;
+    /* 083 */           range_numElementsTodo_0 -= 1000L;
+    /* 084 */         } else {
+    /* 085 */           range_nextBatchTodo_0 = range_numElementsTodo_0;
+    /* 086 */           range_numElementsTodo_0 = 0;
+    /* 087 */           if (range_nextBatchTodo_0 == 0) break;
+    /* 088 */         }
+    /* 089 */         range_batchEnd_0 += range_nextBatchTodo_0 * 1L;
+    /* 090 */       }
+    /* 091 */
+    /* 092 */       int range_localEnd_0 = (int)((range_batchEnd_0 - range_nextIndex_0) / 1L);
+    /* 093 */       for (int range_localIdx_0 = 0; range_localIdx_0 < range_localEnd_0; range_localIdx_0++) {
+    /* 094 */         long range_value_0 = ((long)range_localIdx_0 * 1L) + range_nextIndex_0;
+    /* 095 */
+    /* 096 */         do {
+    /* 097 */           boolean filter_isNull_0 = true;
+    /* 098 */           boolean filter_value_0 = false;
+    /* 099 */           boolean filter_isNull_1 = false;
+    /* 100 */           long filter_value_1 = -1L;
+    /* 101 */           if (3L == 0) {
+    /* 102 */             throw QueryExecutionErrors.remainderByZeroError(((org.apache.spark.sql.catalyst.trees.SQLQueryContext) references[3] /* errCtx */));
+    /* 103 */           } else {
+    /* 104 */             filter_value_1 = (long)(range_value_0 % 3L);
+    /* 105 */           }
+    /* 106 */           if (!filter_isNull_1) {
+    /* 107 */             filter_isNull_0 = false; // resultCode could change nullability.
+    /* 108 */             filter_value_0 = filter_value_1 == 0L;
+    /* 109 */
+    /* 110 */           }
+    /* 111 */           if (filter_isNull_0 || !filter_value_0) continue;
+    /* 112 */
+    /* 113 */           ((org.apache.spark.sql.execution.metric.SQLMetric) references[1] /* numOutputRows */).add(1);
+    /* 114 */
+    /* 115 */           // common sub-expressions
+### B. 性能对比：sum(id * 2) WHERE id % 3 = 0，id 从 0 到 3 亿
+  ① 全阶段代码生成（默认）                                中位数      347 ms  （3 次：330, 347, 349）结果 29999999700000000
+  ② 关闭全阶段代码生成（表达式仍单独代码生成）                      中位数     5943 ms  （3 次：4832, 5943, 10855）结果 29999999700000000
+  ③ 全部关闭（纯解释执行，火山模型）                           中位数    25999 ms  （3 次：25789, 25999, 28834）结果 29999999700000000
+### C. 输出字段数超过 spark.sql.codegen.maxFields（默认 100）时不做全阶段代码生成
+   50 列：*(1) Project [(id#137L + 1) AS c1#138L, (id#137L + 2) AS c2#...   ← 有 *，参与了全阶段代码生成
+  120 列：Project [(id#188L + 1) AS c1#189L, (id#188L + 2) AS c2#190L,...   ← 没有 *，回退为普通执行
+### D. UnsafeRow 的二进制布局：[null 位图][每个字段 8 字节][变长数据]
+  输入 (7, 100, spark)：共 40 字节
+    word 0  0x0000000000000000   null 位图
+    word 1  0x0000000000000007   字段 0 (int)
+    word 2  0x0000000000000064   字段 1 (long)
+    word 3  0x0000002000000005   字段 2 (string：偏移 << 32 | 长度)
+    word 4  0x0000006b72617073   变长区：字符串内容
+  输入 (null, 100, spark)：共 40 字节
+    word 0  0x0000000000000001   null 位图
+    word 1  0x0000000000000000   字段 0 (int)
+    word 2  0x0000000000000064   字段 1 (long)
+    word 3  0x0000002000000005   字段 2 (string：偏移 << 32 | 长度)
+    word 4  0x0000006b72617073   变长区：字符串内容
