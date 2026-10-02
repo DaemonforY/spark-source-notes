@@ -17,6 +17,7 @@
 | — | 第 3 讲：Shuffle 原理（三种 Writer 的选择条件） | [`experiments/04-shuffle-writer`](experiments/04-shuffle-writer/) |
 | — | 第 4 讲：内存管理（内存划分与借用规则） | [`experiments/05-memory`](experiments/05-memory/) |
 | — | 第 5 讲：存储体系（存储级别、cache、广播分块） | [`experiments/06-storage`](experiments/06-storage/) |
+| — | 第 6 讲：RPC 与部署（RPC 端点、动态资源分配） | [`experiments/07-deploy`](experiments/07-deploy/) |
 
 <!-- 文章发布后，把标题替换成各平台的文章链接 -->
 
@@ -76,7 +77,8 @@ spark-source-notes/
 │   ├── 03-dependency/         宽窄依赖与 Stage 切分
 │   ├── 04-shuffle-writer/     三种 Shuffle Writer 的选择条件
 │   ├── 05-memory/             统一内存管理的划分与借用
-│   └── 06-storage/            存储级别、cache 默认级别、广播分块
+│   ├── 06-storage/            存储级别、cache 默认级别、广播分块
+│   └── 07-deploy/             RPC 端点、动态资源分配（local-cluster 模式）
 ├── labs/                  动手练习（IDEA 断点调试指南）
 ├── roadmap/               从入门到 Committer 的学习路线
 ├── images/                文章配图
