@@ -15,6 +15,7 @@
 | 03 | 面试拆解 01｜Job、Stage、Task 到底是什么关系？ | [`experiments/02-job-stage-task`](experiments/02-job-stage-task/) |
 | — | L1 练习：27 个断点跟踪一个 Job 的一生 | [`labs/`](labs/)、[`experiments/01-thread-stacks`](experiments/01-thread-stacks/) |
 | — | 第 3 讲：Shuffle 原理（三种 Writer 的选择条件） | [`experiments/04-shuffle-writer`](experiments/04-shuffle-writer/) |
+| — | 第 4 讲：内存管理（内存划分与借用规则） | [`experiments/05-memory`](experiments/05-memory/) |
 
 <!-- 文章发布后，把标题替换成各平台的文章链接 -->
 
@@ -52,6 +53,9 @@ cd spark-source-notes
 
 ```bash
 ./run-experiment.sh experiments/02-job-stage-task/job-stage-task.scala
+
+# 指定线程数、透传 spark-shell 参数
+MASTER="local[1]" ./run-experiment.sh experiments/05-memory/memory.scala --driver-memory 1g
 ```
 
 每个实验目录下都有 `expected-output.txt`，可以对照自己的运行结果。
@@ -69,7 +73,8 @@ spark-source-notes/
 │   ├── 01-thread-stacks/      Job 运行中的真实线程栈
 │   ├── 02-job-stage-task/     Job / Stage / Task 的关系
 │   ├── 03-dependency/         宽窄依赖与 Stage 切分
-│   └── 04-shuffle-writer/     三种 Shuffle Writer 的选择条件
+│   ├── 04-shuffle-writer/     三种 Shuffle Writer 的选择条件
+│   └── 05-memory/             统一内存管理的划分与借用
 ├── labs/                  动手练习（IDEA 断点调试指南）
 ├── roadmap/               从入门到 Committer 的学习路线
 ├── images/                文章配图

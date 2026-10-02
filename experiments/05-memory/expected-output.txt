@@ -1,0 +1,9 @@
+### A. 内存划分（driver-memory=1g）
+  JVM Runtime.maxMemory          =   1024.0 MB
+  公式 (系统内存 - 300MB) × 0.6  =    434.4 MB
+  实际统一内存（Storage + Execution）=    434.4 MB
+  其中 Storage 区域（× 0.5）      =    217.2 MB
+### B. 借用与收回
+  [B1] 缓存 38 个 8MB 分区：Storage 已用 304.0 MB（Storage 区域只有 217.2 MB）
+  [B2] 大聚合之后：缓存剩 27 个分区，Storage 已用 216.0 MB
+       该聚合的峰值 Execution 内存 223.4 MB，溢写 446.8 MB
