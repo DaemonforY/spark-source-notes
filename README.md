@@ -21,6 +21,7 @@
 | — | 第 7 讲：容错机制（重试、Executor 丢失、Checkpoint） | [`experiments/08-fault-tolerance`](experiments/08-fault-tolerance/) |
 | — | 第 8 讲：Spark SQL 与 Catalyst（四个阶段、生效的规则） | [`experiments/09-catalyst`](experiments/09-catalyst/) |
 | — | 第 9 讲：代码生成与 Tungsten（生成的代码、性能对比、UnsafeRow） | [`experiments/10-codegen`](experiments/10-codegen/) |
+| — | 第 10 讲：AQE、DataSource V2 与 Spark Connect | [`experiments/11-aqe-dsv2-connect`](experiments/11-aqe-dsv2-connect/) |
 
 <!-- 文章发布后，把标题替换成各平台的文章链接 -->
 
@@ -84,7 +85,8 @@ spark-source-notes/
 │   ├── 07-deploy/             RPC 端点、动态资源分配（local-cluster 模式）
 │   ├── 08-fault-tolerance/    Task 重试、Executor 丢失后的局部重算、Checkpoint
 │   ├── 09-catalyst/           一条 SQL 在 Catalyst 中的四个阶段
-│   └── 10-codegen/            全阶段代码生成、性能对比、UnsafeRow 布局
+│   ├── 10-codegen/            全阶段代码生成、性能对比、UnsafeRow 布局
+│   └── 11-aqe-dsv2-connect/   AQE 三大优化、DataSource V2 下推、Spark Connect
 ├── labs/                  动手练习（IDEA 断点调试指南）
 ├── roadmap/               从入门到 Committer 的学习路线
 ├── images/                文章配图

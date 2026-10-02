@@ -1,0 +1,24 @@
+### A. 合并 Shuffle 分区（spark.sql.shuffle.partitions = 200，数据很小）
+  AQE=false：各 Stage 的 Task 数 = 8, 200
+  AQE=true：各 Stage 的 Task 数 = 8, 1
+      +- AQEShuffleRead coalesced
+### B. 动态切换 Join 策略：静态估计很大，运行时发现很小
+  执行前（初始计划）：
+      +- SortMergeJoin [k#27L], [k2#32L], Inner
+  执行后（最终计划）：
+      *(3) BroadcastHashJoin [k#27L], [k2#32L], Inner, BuildRight, false, false
+### C. 处理倾斜 Join：90% 的数据 key = 0
+  skewJoin.enabled=false：各 Stage 的 Task 数 = 4, 4, 20, 1
+      +- *(5) SortMergeJoin [k#41L], [k#44L], Inner
+  skewJoin.enabled=true：各 Stage 的 Task 数 = 4, 4, 23, 1
+      +- *(5) SortMergeJoin(skew=true) [k#41L], [k#44L], Inner
+      :  +- AQEShuffleRead skewed
+      +- AQEShuffleRead
+### D. DataSource V1 vs V2：聚合下推到 Parquet
+  V1（默认，parquet 在 useV1SourceList 中）：
+      +- FileScan parquet [id#69L] Batched: true, DataFilters: [], ...
+        PushedFilters: []
+  V2（把 parquet 从 useV1SourceList 移除）：
+      +- BatchScan parquet file:<tmp>/... ...
+        PushedAggregation: [MAX(id), MIN(id), COUNT(*)]
+        PushedFilters: []

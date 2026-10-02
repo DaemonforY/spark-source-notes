@@ -1,0 +1,41 @@
+### E1 经典模式的 spark：org.apache.spark.sql.classic.SparkSession
+### E1 Connect 客户端会话：org.apache.spark.sql.connect.SparkSession
+### E2 通过 Connect 执行查询：sum(0..99) = 4950
+### E3 在 Connect 会话上访问 sparkContext：失败 → SparkUnsupportedOperationException: [UNSUPPORTED_CONNECT_FEATURE.SESSION_SPARK_CONTEXT] Feature is not supported in Spark Connect: Access to the SparkContext. SQLSTATE: 0A000
+### E4 Connect 客户端发出的未解析计划（protobuf 的文本形式，节选）：
+  root {
+    common {
+      plan_id: 4
+    }
+    filter {
+      input {
+        common {
+          plan_id: 3
+        }
+        range {
+          start: 0
+          end: 100
+          step: 1
+        }
+      }
+      condition {
+        expression_string {
+          expression: "id > 50"
+        }
+        common {
+          origin {
+            jvm_origin {
+              stack_trace {
+                class_loader_name: "app"
+                declaring_class: "org.apache.spark.sql.connect.Dataset"
+                method_name: "filter"
+                file_name: "Dataset.scala"
+                line_number: 1480
+              }
+              stack_trace {
+### E5 服务端执行时的物理计划：
+== Physical Plan ==
+*(1) Filter (id#8L > 50)
++- *(1) Range (0, 100, step=1, splits=2)
+
+
