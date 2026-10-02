@@ -1,0 +1,64 @@
+### SQL
+SELECT p.name, sum(o.amount) AS total
+FROM people p JOIN orders o ON p.id = o.user_id
+WHERE p.age > 10 + 20 AND p.city = 'BJ'
+GROUP BY p.name
+
+### ① 解析后（Unresolved Logical Plan）：表名、列名、函数都还没有绑定
+  'Aggregate ['p.name], ['p.name, 'sum('o.amount) AS total#44]
+  +- 'Filter (('p.age > (10 + 20)) AND ('p.city = BJ))
+     +- 'Join Inner, ('p.id = 'o.user_id)
+        :- 'SubqueryAlias p
+        :  +- 'UnresolvedRelation [people], [], false
+        +- 'SubqueryAlias o
+           +- 'UnresolvedRelation [orders], [], false
+
+### ② 分析后（Analyzed Logical Plan）：绑定了表、列的类型和唯一 ID
+  Aggregate [name#38], [name#38, sum(amount#43) AS total#44]
+  +- Filter ((age#39 > (10 + 20)) AND (city#40 = BJ))
+     +- Join Inner, (id#37 = user_id#42)
+        :- SubqueryAlias p
+        :  +- SubqueryAlias people
+        :     +- View (`people`, [id#37, name#38, age#39, city#40, bio#41])
+        :        +- Relation [id#37,name#38,age#39,city#40,bio#41] parquet
+        +- SubqueryAlias o
+           +- SubqueryAlias orders
+              +- View (`orders`, [user_id#42, amount#43])
+                 +- Relation [user_id#42,amount#43] parquet
+
+### ③ 优化后（Optimized Logical Plan）
+  Aggregate [name#38], [name#38, sum(amount#43) AS total#44]
+  +- Project [name#38, amount#43]
+     +- Join Inner, (id#37 = user_id#42)
+        :- Project [id#37, name#38]
+        :  +- Filter (((isnotnull(age#39) AND isnotnull(city#40)) AND ((age#39 > 30) AND (city#40 = BJ))) AND isnotnull(id#37))
+        :     +- Relation [id#37,name#38,age#39,city#40,bio#41] parquet
+        +- Filter isnotnull(user_id#42)
+           +- Relation [user_id#42,amount#43] parquet
+
+### ④ 物理计划（Executed Physical Plan）
+  *(3) HashAggregate(keys=[name#38], functions=[sum(amount#43)], output=[name#38, total#44])
+  +- Exchange hashpartitioning(name#38, 200), ENSURE_REQUIREMENTS, [plan_id=N]
+     +- *(2) HashAggregate(keys=[name#38], functions=[partial_sum(amount#43)], output=[name#38, sum#47])
+        +- *(2) Project [name#38, amount#43]
+           +- *(2) BroadcastHashJoin [id#37], [user_id#42], Inner, BuildRight, false, false
+              :- *(2) Project [id#37, name#38]
+              :  +- *(2) Filter ((((isnotnull(age#39) AND isnotnull(city#40)) AND (age#39 > 30)) AND (city#40 = BJ)) AND isnotnull(id#37))
+              :     +- *(2) ColumnarToRow
+              :        +- FileScan parquet [id#37,name#38,age#39,city#40] Batched: true, DataFilters: [isnotnull(age#39), isnotnull(city#40), (age#39 > 30), (city#40 = BJ), isnotnull(id#37)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:<tmp>/..., PartitionFilters: [], PushedFilters: [IsNotNull(age), IsNotNull(city), GreaterThan(age,30), EqualTo(city,BJ), IsNotNull(id)], ReadSchema: struct<id:int,name:string,age:int,city:string>
+              +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)),false), [plan_id=N]
+                 +- *(1) Filter isnotnull(user_id#42)
+                    +- *(1) ColumnarToRow
+                       +- FileScan parquet [user_id#42,amount#43] Batched: true, DataFilters: [isnotnull(user_id#42)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:<tmp>/..., PartitionFilters: [], PushedFilters: [IsNotNull(user_id)], ReadSchema: struct<user_id:int,amount:double>
+
+### 真正生效的规则（按所属模块分组）
+  分析器 analysis.* ：Analyzer$ResolveFunctions, Analyzer$ResolveReferences, Analyzer$ResolveRelations
+  优化器 optimizer.*：ColumnPruning, ConstantFolding, InferFiltersFromConstraints, Optimizer$FinishAnalysis, PushDownPredicates
+  （物理计划的准备规则如 EnsureRequirements、CollapseCodegenStages 不经过 RuleExecutor，不会出现在这里）
+  规则总数：被调用过 242 条，真正生效 8 条
+
+### 各阶段耗时
+  parsing         47 ms
+  analysis        29 ms
+  optimization    44 ms
+  planning        45 ms
