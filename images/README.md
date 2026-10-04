@@ -8,6 +8,7 @@
 | `out/01/` | 源码通关 01：编译踩坑全记录 | 9 |
 | `out/02/` | 面试拆解 01：Job、Stage、Task | 9 |
 | `out/03/` | 宽窄依赖：Stage 到底在哪里切开 | 9 |
+| `out/04/` | Committer 之路 01：我给 Apache Spark 提的第一个 PR | 9 |
 
 ## 修改与重新生成
 
